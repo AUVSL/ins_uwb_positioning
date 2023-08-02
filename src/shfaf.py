@@ -1,15 +1,16 @@
 import numpy as np
+
 import quaternion
 import rospy
+import scipy as sp
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
-import scipy as sp
 
 
 def skew(x):
-    return np.array([[0, -x[2], x[1]],
-                     [x[2], 0, -x[0]],
-                     [-x[1], x[0], 0]])
+    return np.array([[0., -x[2], x[1]],
+                     [x[2], 0., -x[0]],
+                     [-x[1], x[0], 0.]])
 
 
 def push(x, y):
@@ -46,7 +47,9 @@ class shfaf(object):
 
         self.lamb = np.block([[np.zeros((3, 12), np.float)],
                               [np.identity(12, np.float)]])
+        self.lamb = np.asfarray(self.lamb)
         self.H = np.block([[np.identity(6, np.float), np.zeros((6, 9), np.float)]])
+        rospy.loginfo(self.H.shape)
         self.threshold = 4.5
         a_v = np.ones(window_width, np.float) * a
         j = np.arange(0, window_width)
@@ -138,9 +141,9 @@ class shfaf(object):
                                       np.eye(3) * ((0.001 * dt) ** 2), np.eye(3) * ((0.0 * dt) ** 2))
         Q = self.Q
         w = wm * dt
-        g = np.array([0, 0, 9.8])[np.newaxis].T
+        g = np.array([0, 0, -9.8])[np.newaxis].T
         x_dot = np.concatenate([x[3:6, :],
-                                C.dot((am - x[6:9, :])) - g,
+                                C.dot((am - x[6:9, :])) + g,
                                 np.zeros(6)[np.newaxis].T
                                 ])
         x_next = x + x_dot * dt
@@ -160,6 +163,8 @@ class shfaf(object):
                        -np.identity(3, np.float) * dt],
                       [np.zeros((3, 9), np.float), np.identity(3, np.float), np.zeros((3, 3), np.float)],
                       [np.zeros((3, 12), np.float), np.identity(3, np.float)]])
+        F = np.asfarray(F)
+
         self.P_ = (F.dot(P.dot(F.T)) + self.lamb.dot(Q.dot(self.lamb.T)))
         self.dx_ = F.dot(self.dx)
         self.k = self.k + 1

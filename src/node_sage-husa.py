@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # coding=utf-8
 # /gtec/toa/ranging  /imu/data
 
@@ -152,10 +152,10 @@ def node():
 
     rospy.init_node('estimator', anonymous=True)
 
-    rospy.Subscriber("/imu/data", Imu, imu_callback)
-    rospy.Subscriber("/gtec/toa/ranging", Ranging, uwb_callback)
-    rospy.Subscriber("/filter_mode", Int8, activation_callback)
-    rospy.Subscriber("/gazebo/model_states", LinkStates, model_callback)
+    imu_sub = rospy.Subscriber("/imu/data", Imu, imu_callback)
+    uwb_sub = rospy.Subscriber("/gtec/toa/ranging", Ranging, uwb_callback)
+    filter_mode_sub = rospy.Subscriber("/filter_mode", Int8, activation_callback)
+    model_states_sub = rospy.Subscriber("/gazebo/model_states", LinkStates, model_callback)
 
     # spin() simply keeps python from exiting until this node is stopped
     rospy.spin()
