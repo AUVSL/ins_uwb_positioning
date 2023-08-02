@@ -24,6 +24,9 @@ pub_bias = rospy.Publisher('filter_bias', Vector3 , queue_size=1)
 init = 1
 count = 0
 
+
+UWB_USE_TRILATERATION = True
+
 def imu_callback(data):
 
     if init == 0:
@@ -77,7 +80,7 @@ def imu_callback(data):
 
 
 def uwb_callback(data):
-    if init == 2:
+    if UWB_USE_TRILATERATION or init == 2:
         i = data.anchorId
         r = data.range*0.001
         filter.range[i] = r
@@ -139,7 +142,7 @@ def model_callback(data):
         filter.velOld[2] = data.twist[5].linear.z + np.random.normal(0.0, 0.1) + uwb_noise[2]*5  + pos_outlier[2]*5
         error = np.linalg.norm(pos_true - filter.x_[:3,0])
         pub_error.publish(error)
-        if filter.mode != 3:
+        if filter.mode != 3 and not UWB_USE_TRILATERATION:
             filter.correction()
         count = 0
 
